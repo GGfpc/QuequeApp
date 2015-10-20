@@ -2,5 +2,5 @@ package GUI;
 
 public class ControlerGUI {
 		
-	int a = 2;
+	String a = "Fiz push e tu fizeste pull";
 }
