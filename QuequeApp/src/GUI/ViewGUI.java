@@ -2,6 +2,7 @@ package GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -34,13 +36,13 @@ public class ViewGUI {
 	
 	//Zona de mensagens
 	private JPanel fundoChat;
-	private JTextArea chat = new JTextArea();
+	private JTextArea chat;
 	private JScrollPane scrollpaneChat = new JScrollPane(chat);
 	
 	//Zona de contactos
 	private JPanel zonaDeContactos;
-	private DefaultListModel model = new DefaultListModel<String>(); 
-	private JList <String> list = new JList<>(model);
+	private DefaultListModel<Contacto> model = new DefaultListModel<Contacto>(); 
+	private JList <Contacto> list = new JList<>(model);
 	private JScrollPane scrollpaneContacts = new JScrollPane(list);
 	private JButton addContacto;
 	
@@ -50,7 +52,7 @@ public class ViewGUI {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				chat.setText(chat.getText() + "\n"  + texto.getText());	
+				chat.setText(chat.getText() + "\n"  + "Eu: " + texto.getText());	
 				texto.setText(null);
 			}
 		});
@@ -58,23 +60,23 @@ public class ViewGUI {
 		texto.addKeyListener(new KeyListener() {
 			
 			@Override
-			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER){
+					chat.setText(chat.getText() + "\n" + "Eu:"  + texto.getText());	
+					texto.setText(null);
+				}
 				
 			}
-			
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
-			
+
 			@Override
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyCode() == KeyEvent.VK_ENTER){
-					chat.setText(chat.getText() + "\n"  + texto.getText());	
-					texto.setText(null);
-				}
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
 				
 			}
 		});
@@ -84,9 +86,10 @@ public class ViewGUI {
 		
 		fundoChat = new JPanel(new BorderLayout());
 	
-		model.addElement("Ana Alves");
-		model.addElement("Bruno Bernardo");
-		model.addElement("Carlos Costa");
+		model.addElement(new Contacto("João Pedro", new JTextArea()));
+		model.addElement(new Contacto("Jorge Torres", new JTextArea()));
+		model.addElement(new Contacto("Ana Silva", new JTextArea()));
+		
 		
 		JPanel zonaDeEscrita = new JPanel();
 		zonaDeEscrita.setLayout(new FlowLayout());
@@ -101,7 +104,7 @@ public class ViewGUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = JOptionPane.showInputDialog("Nome do Contacto");
-				model.addElement(name);
+				model.addElement(new Contacto(name, new JTextArea()));
 				
 			}
 		});
@@ -116,18 +119,26 @@ public class ViewGUI {
 			
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				nomeConversa.setText(list.getSelectedValue());
+				nomeConversa.setText(list.getSelectedValue().getNome());
+				chat = list.getSelectedValue().getConversa();
+				fundoChat.add(chat, BorderLayout.CENTER);
+				send.setEnabled(true);
+				texto.setEnabled(true);
 				
 			}
 		});
 		
-		chat.setEditable(false);
+		
+		send.setEnabled(false);
+		texto.setEnabled(false);
+		
+		
 		window.add(zonaDeContactos, BorderLayout.WEST);
 		fundoChat.add(nomeConversa, BorderLayout.NORTH);
 		fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
 		fundoChat.add(zonaDeEscrita, BorderLayout.SOUTH);
 		window.add(fundoChat, BorderLayout.CENTER);
-		window.setBounds(20, 20, 550, 500);
+		window.setBounds(20, 20, 570, 500);
 		//window.pack();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
@@ -135,6 +146,11 @@ public class ViewGUI {
 
 	public void open() {
 			window.setVisible(true);
+			chat.setEditable(false);
 	}
+	
+	
+		
+
 	
 }
