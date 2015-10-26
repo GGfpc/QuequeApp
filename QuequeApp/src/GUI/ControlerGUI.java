@@ -1,7 +1,24 @@
 package GUI;
 
+import javax.swing.JTextArea;
+
+
+
 public class ControlerGUI {
 		
-	String a = "Fiz push e tu fizeste pull";
-	int b;
+	ViewGUI cliente;
+	Utilizador user;
+	
+	
+	public ControlerGUI(ViewGUI cliente, Utilizador user) {
+		super();
+		this.cliente = cliente;
+		this.user = user;
+	}
+	
+
+	
+	
+	
+	
 }
