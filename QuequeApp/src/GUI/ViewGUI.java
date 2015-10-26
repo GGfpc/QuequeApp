@@ -32,6 +32,12 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+
+import Projecto.Contacto;
+import Projecto.Conversa;
+import Projecto.Mensagem;
 
 public class ViewGUI {
 
@@ -44,6 +50,7 @@ public class ViewGUI {
 	// Zona de mensagens
 	private JPanel fundoChat;
 	private JTextArea chat;
+	private JScrollPane scrollpaneChat;
 
 	// Zona de contactos
 	private JPanel zonaDeContactos;
@@ -59,23 +66,21 @@ public class ViewGUI {
 		texto = new JTextField(30);
 		send = new JButton("send");
 
+		//Listener para botão Enviar
 		send.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				chat.setText(chat.getText() + "\n" + "Eu: " + texto.getText());
-				texto.setText(null);
+				enviaMensagem();
 			}
 		});
-
+		//Listender do TextField para tecla Enter
 		texto.addKeyListener(new KeyListener() {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					chat.setText(chat.getText() + "\n" + "Eu:"
-							+ texto.getText());
-					texto.setText(null);
+					enviaMensagem();
 				}
 
 			}
@@ -93,6 +98,7 @@ public class ViewGUI {
 			}
 		});
 
+		//Adicionar elementos ao painel da Zona de escrita
 		JPanel zonaDeEscrita = new JPanel();
 		zonaDeEscrita.setBackground(Color.WHITE);
 		zonaDeEscrita.setLayout(new FlowLayout());
@@ -102,9 +108,16 @@ public class ViewGUI {
 		// ******** Zona de Chat ***************************************/
 
 		fundoChat = new JPanel(new BorderLayout());
+		
+		//Cria label com para pôr o nome do Contacto e alinha o texto horizontalmente
 		JLabel nomeConversa = new JLabel("Chat");
 		nomeConversa.setHorizontalAlignment(SwingConstants.CENTER);
+		
+		//Cria scrollpane para o chat e põe uma border invisivel
+		scrollpaneChat = new JScrollPane(chat);
+		scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
 
+		//adicionar elementos ao painel do chat
 		fundoChat.add(nomeConversa, BorderLayout.NORTH);
 		fundoChat.add(zonaDeEscrita, BorderLayout.SOUTH);
 
@@ -114,6 +127,7 @@ public class ViewGUI {
 		model = new DefaultListModel<Contacto>();
 		list = new JList<>(model);
 
+		//Classe que define a aparência dos Elementos na Lista 
 		class ContactoCellRenderer extends JLabel implements
 				ListCellRenderer<Contacto> {
 
@@ -121,15 +135,13 @@ public class ViewGUI {
 			public Component getListCellRendererComponent(
 					JList<? extends Contacto> list, Contacto value, int index,
 					boolean isSelected, boolean cellHasFocus) {
-
+				//Cada elemento da lista é uma JLabel
 				String name = value.getNome();
 				setText(name);
 				setIcon(value.getImg());
 				Font font = new Font("Arial", Font.BOLD, 30);
 				setFont(font);
-				setHorizontalAlignment(CENTER);
-				setVerticalAlignment(CENTER);
-
+			
 				setSize(300, 100);
 
 				if (isSelected) {
@@ -146,63 +158,47 @@ public class ViewGUI {
 				return this;
 			}
 		}
-
+		//Adiciona novo CellRenderer à lista e limita a largura maxima
 		list.setCellRenderer(new ContactoCellRenderer());
 		list.setFixedCellWidth(175);
 
 		scrollpaneContacts = new JScrollPane(list);
+		fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
 
 		addContacto = new JButton("Novo");
+		
+		//Listener para o botão de adicionar contactos
 		addContacto.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JPanel dialog = new JPanel(new FlowLayout());
-				JButton foto = new JButton("Inserir foto");
-				File ficheiro;
-				Image image = null;
-				ImageIcon iconeContacto = null;
-				
-				String name = JOptionPane.showInputDialog("Indique o nome");
-				int option = JOptionPane.showConfirmDialog(null, "Deseja adicionar uma foto?");
-				
-				if(option == JOptionPane.YES_OPTION){
-					JFileChooser selectimg = new JFileChooser();
-					int result = selectimg.showOpenDialog(null);
-					
-					if(result == JFileChooser.APPROVE_OPTION){
-						ficheiro = selectimg.getSelectedFile() ;
-						try {
-							image = ImageIO.read(ficheiro);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-						iconeContacto = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
-					}
-				}
-				model.addElement(new Contacto(name, new Conversa(
-						new JTextArea()), iconeContacto));
+				criaContacto();
 
 			}
-		});
 
+		});
+		
+		//Adiciona elementos à zona dos contactos
 		zonaDeContactos.add(addContacto, BorderLayout.SOUTH);
 		zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
 
+		//Listener para o elemento selecionado da Lista
 		list.addListSelectionListener(new ListSelectionListener() {
-
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
+				//Muda a JLabel com o nome da conversa para o nome do Contacto
 				nomeConversa.setText(list.getSelectedValue().getNome());
+				//Muda o chat para a JTextArea que pertence ao contacto
 				chat = list.getSelectedValue().getConversa().getConversa();
-				JScrollPane scrollpaneChat = new JScrollPane(chat);
-				fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
+				//Muda a scrollpane para o chat novo
+				scrollpaneChat.setViewportView(chat);
+				//Volta a permitir escrever e enviar texto
 				send.setEnabled(true);
 				texto.setEnabled(true);
 
 			}
 		});
-
+		//Impede o envio e escrita de texto quando nenhum contacto está selecionado
 		send.setEnabled(false);
 		texto.setEnabled(false);
 
@@ -214,6 +210,62 @@ public class ViewGUI {
 		// window.pack();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+	}
+	
+	// Função para criar contacto
+	private void criaContacto() {
+		File ficheiro;
+		Image image = null;
+		ImageIcon iconeContacto = null;
+		
+		//Mostra um menu a perguntar o nome
+		String name = JOptionPane.showInputDialog("Indique o nome");
+		
+		//Mostra um menu a perguntar se quer adicionar foto
+		int escolherPic = JOptionPane.showConfirmDialog(null, "Deseja adicionar uma foto?");
+		
+		//Se a resposta for sim
+		if(escolherPic == JOptionPane.YES_OPTION){
+			//Cria filtro para mostrar apenas imagens no selector de ficheiros
+			FileNameExtensionFilter filtroImagens = new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png");
+			
+			//Cria selector, adiciona o filtro e mostra os ficheiros
+			JFileChooser selectimg = new JFileChooser();
+			selectimg.setFileFilter(filtroImagens);
+			int result = selectimg.showOpenDialog(null);
+			
+			//Se selecionar um ficheiro guarda-o e depois tenta lêr como imagem
+			if(result == JFileChooser.APPROVE_OPTION){
+				ficheiro = selectimg.getSelectedFile() ;
+				try {
+					image = ImageIO.read(ficheiro);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				//Transforma uma versão diminuida da imagem num ImageIcon para o contacto
+				iconeContacto = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
+			}
+		} else {
+			//Transforma a imagem default num ImageIcon para o contacto
+			iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource(
+					"/def.png")).getImage().getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
+		}
+		//Cria o novo contacto
+		model.addElement(new Contacto(name, new Conversa(
+				new JTextArea()), iconeContacto));
+	}
+	
+	//Devolve o ultimo contacto criado para adicionar à ArrayList do Utilizador
+	public Contacto getNovoContacto() {
+		return list.getModel().getElementAt(list.getModel().getSize() - 1);
+
+	}
+	//Escreve o texto no chat e adiciona à ArrayList de mensagens do Contacto
+	private void enviaMensagem() {
+		Mensagem message = new Mensagem(texto.getText(), list.getSelectedValue());
+		list.getSelectedValue().getConversa().addMessage(message);
+		chat.setText(chat.getText() + "\n" + "Eu: " + message.getConteudo());
+		texto.setText(null);
 	}
 
 	public void open() {

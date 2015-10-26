@@ -16,6 +16,10 @@ public class ControlerGUI {
 		this.user = user;
 	}
 	
+	public void novoContacto() {
+		user.novoContacto(cliente.getNovoContacto());
+	}
+	
 
 	
 	

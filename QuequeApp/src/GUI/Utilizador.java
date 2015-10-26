@@ -5,6 +5,8 @@ import java.util.HashMap;
 
 import javax.swing.JTextArea;
 
+import Projecto.Contacto;
+
 public class Utilizador{
 	
 	ArrayList<Contacto> contactosDoUtilizador;

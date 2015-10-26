@@ -1,4 +1,6 @@
-package GUI;
+package Main;
+
+import GUI.ViewGUI;
 
 public class Main {
 	
