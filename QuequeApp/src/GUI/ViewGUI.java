@@ -58,6 +58,7 @@ public class ViewGUI {
 	private JList<Contacto> list;
 	private JScrollPane scrollpaneContacts;
 	private JButton addContacto;
+	private JButton deleteContacto;
 
 	public ViewGUI() {
 
@@ -66,7 +67,7 @@ public class ViewGUI {
 		texto = new JTextField(30);
 		send = new JButton("send");
 
-		//Listener para botão Enviar
+		//Listener para botï¿½o Enviar
 		send.addActionListener(new ActionListener() {
 
 			@Override
@@ -109,11 +110,11 @@ public class ViewGUI {
 
 		fundoChat = new JPanel(new BorderLayout());
 		
-		//Cria label com para pôr o nome do Contacto e alinha o texto horizontalmente
+		//Cria label com para pï¿½r o nome do Contacto e alinha o texto horizontalmente
 		JLabel nomeConversa = new JLabel("Chat");
 		nomeConversa.setHorizontalAlignment(SwingConstants.CENTER);
 		
-		//Cria scrollpane para o chat e põe uma border invisivel
+		//Cria scrollpane para o chat e pï¿½e uma border invisivel
 		scrollpaneChat = new JScrollPane(chat);
 		scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
 
@@ -127,7 +128,7 @@ public class ViewGUI {
 		model = new DefaultListModel<Contacto>();
 		list = new JList<>(model);
 
-		//Classe que define a aparência dos Elementos na Lista 
+		//Classe que define a aparï¿½ncia dos Elementos na Lista 
 		class ContactoCellRenderer extends JLabel implements
 				ListCellRenderer<Contacto> {
 
@@ -135,7 +136,7 @@ public class ViewGUI {
 			public Component getListCellRendererComponent(
 					JList<? extends Contacto> list, Contacto value, int index,
 					boolean isSelected, boolean cellHasFocus) {
-				//Cada elemento da lista é uma JLabel
+				//Cada elemento da lista ï¿½ uma JLabel
 				String name = value.getNome();
 				setText(name);
 				setIcon(value.getImg());
@@ -158,7 +159,7 @@ public class ViewGUI {
 				return this;
 			}
 		}
-		//Adiciona novo CellRenderer à lista e limita a largura maxima
+		//Adiciona novo CellRenderer ï¿½ lista e limita a largura maxima
 		list.setCellRenderer(new ContactoCellRenderer());
 		list.setFixedCellWidth(175);
 
@@ -167,7 +168,7 @@ public class ViewGUI {
 
 		addContacto = new JButton("Novo");
 		
-		//Listener para o botão de adicionar contactos
+		//Listener para o botï¿½o de adicionar contactos
 		addContacto.addActionListener(new ActionListener() {
 
 			@Override
@@ -178,10 +179,42 @@ public class ViewGUI {
 
 		});
 		
-		//Adiciona elementos à zona dos contactos
-		zonaDeContactos.add(addContacto, BorderLayout.SOUTH);
-		zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
+		deleteContacto = new JButton("Apagar");
+		
+		//Listener para o botï¿½o de apagar contactos
+		deleteContacto.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(list.getSelectedIndex() != 0) {
+					int index = list.getSelectedIndex();
+					list.setSelectedIndex(list.getSelectedIndex() - 1);
+					model.remove(index);
+					//int size = model.getSize();
+					
+					//if(size == 0) {
+					//	deleteContacto.setEnabled(false);
+					//}
+					//else {
+						//	if(index == model.getSize()) {
+						//		index--;
+					//		}
+					//list.setSelectedIndex(index);
+					//list.ensureIndexIsVisible(index);
+					//}
+				}
+			}
+		});
+		
+		//Adiciona elementos ï¿½ zona dos contactos
+				JPanel zonaDeEditar = new JPanel();
+				zonaDeEditar.setLayout(new FlowLayout());
+				zonaDeEditar.add(addContacto);
+				zonaDeEditar.add(deleteContacto);
+				zonaDeContactos.add(zonaDeEditar, BorderLayout.SOUTH);
+				zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
 
+		
 		//Listener para o elemento selecionado da Lista
 		list.addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -198,7 +231,7 @@ public class ViewGUI {
 
 			}
 		});
-		//Impede o envio e escrita de texto quando nenhum contacto está selecionado
+		//Impede o envio e escrita de texto quando nenhum contacto estï¿½ selecionado
 		send.setEnabled(false);
 		texto.setEnabled(false);
 
@@ -206,13 +239,13 @@ public class ViewGUI {
 
 		window.add(zonaDeContactos, BorderLayout.WEST);
 		window.add(fundoChat, BorderLayout.CENTER);
-		window.setSize(700, 500);
+		window.setSize(800, 600);
 		// window.pack();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
 	
-	// Função para criar contacto
+	// Funï¿½ï¿½o para criar contacto
 	private void criaContacto() {
 		File ficheiro;
 		Image image = null;
@@ -234,7 +267,7 @@ public class ViewGUI {
 			selectimg.setFileFilter(filtroImagens);
 			int result = selectimg.showOpenDialog(null);
 			
-			//Se selecionar um ficheiro guarda-o e depois tenta lêr como imagem
+			//Se selecionar um ficheiro guarda-o e depois tenta lï¿½r como imagem
 			if(result == JFileChooser.APPROVE_OPTION){
 				ficheiro = selectimg.getSelectedFile() ;
 				try {
@@ -242,7 +275,7 @@ public class ViewGUI {
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
-				//Transforma uma versão diminuida da imagem num ImageIcon para o contacto
+				//Transforma uma versï¿½o diminuida da imagem num ImageIcon para o contacto
 				iconeContacto = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
 			}
 		} else {
@@ -255,12 +288,12 @@ public class ViewGUI {
 				new JTextArea()), iconeContacto));
 	}
 	
-	//Devolve o ultimo contacto criado para adicionar à ArrayList do Utilizador
+	//Devolve o ultimo contacto criado para adicionar ï¿½ ArrayList do Utilizador
 	public Contacto getNovoContacto() {
 		return list.getModel().getElementAt(list.getModel().getSize() - 1);
 
 	}
-	//Escreve o texto no chat e adiciona à ArrayList de mensagens do Contacto
+	//Escreve o texto no chat e adiciona ï¿½ ArrayList de mensagens do Contacto
 	private void enviaMensagem() {
 		Mensagem message = new Mensagem(texto.getText(), list.getSelectedValue());
 		list.getSelectedValue().getConversa().addMessage(message);

@@ -1,12 +1,13 @@
 package Main;
 
-import GUI.ViewGUI;
+import GUI.Login;
+
 
 public class Main {
 	
 	public static void main(String[] args){
-		ViewGUI view = new ViewGUI();
-		view.open();
+		Login login = new Login();
+		login.open();
 	}
 
 }
