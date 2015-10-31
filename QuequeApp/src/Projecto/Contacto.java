@@ -1,4 +1,4 @@
-package Projecto;
+	package Projecto;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTextArea;
@@ -31,6 +31,11 @@ public class Contacto {
 
 	public Conversa getConversa() {
 		return conversa;
+	}
+	
+	@Override
+	public String toString() {
+		return nome;
 	}
 
 }
