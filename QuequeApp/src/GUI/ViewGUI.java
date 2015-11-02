@@ -6,14 +6,18 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.Observable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -27,10 +31,11 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -39,7 +44,7 @@ import Projecto.Contacto;
 import Projecto.Conversa;
 import Projecto.Mensagem;
 
-public class ViewGUI{
+public class ViewGUI {
 
 	private JFrame window = new JFrame("HeyApp");
 	private Utilizador user;
@@ -50,8 +55,9 @@ public class ViewGUI{
 
 	// Zona de mensagens
 	private JPanel fundoChat;
-	private JTextArea chat;
+	private JanelaDeConversa chat;
 	private JScrollPane scrollpaneChat;
+	private JLabel empty;
 
 	// Zona de contactos
 	private JPanel zonaDeContactos;
@@ -63,8 +69,8 @@ public class ViewGUI{
 
 	public ViewGUI(Utilizador user) {
 
-		this.user = user;	
-		
+		this.user = user;
+
 		// **************** Zona de Escrita **************************/
 
 		texto = new JTextField(30);
@@ -104,7 +110,6 @@ public class ViewGUI{
 
 		// Adicionar elementos ao painel da Zona de escrita
 		JPanel zonaDeEscrita = new JPanel();
-		zonaDeEscrita.setBackground(Color.WHITE);
 		zonaDeEscrita.setLayout(new FlowLayout());
 		zonaDeEscrita.add(texto);
 		zonaDeEscrita.add(send);
@@ -117,11 +122,13 @@ public class ViewGUI{
 		// horizontalmente
 		JLabel nomeConversa = new JLabel("Chat");
 		nomeConversa.setHorizontalAlignment(SwingConstants.CENTER);
-
-		// Cria scrollpane para o chat e p�e uma border invisivel
+		empty = new JLabel("Seleciona um contacto");
+		empty.setHorizontalAlignment(SwingConstants.CENTER);
+		fundoChat.add(empty, BorderLayout.CENTER);
 		scrollpaneChat = new JScrollPane(chat);
 		scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
-
+		scrollpaneChat.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollpaneChat.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		// adicionar elementos ao painel do chat
 		fundoChat.add(nomeConversa, BorderLayout.NORTH);
 		fundoChat.add(zonaDeEscrita, BorderLayout.SOUTH);
@@ -129,6 +136,7 @@ public class ViewGUI{
 		// ******** Zona de Contactos **********************************/
 
 		zonaDeContactos = new JPanel(new BorderLayout());
+
 		model = new DefaultListModel<Contacto>();
 		list = new JList<>(model);
 
@@ -168,8 +176,7 @@ public class ViewGUI{
 		list.setFixedCellWidth(175);
 
 		scrollpaneContacts = new JScrollPane(list);
-		fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
-
+		scrollpaneContacts.setBorder(BorderFactory.createEmptyBorder());
 		addContacto = new JButton("Novo");
 
 		// Listener para o bot�o de adicionar contactos
@@ -177,7 +184,11 @@ public class ViewGUI{
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				criaContacto();
+				// Mostra um menu a perguntar o nome
+				String name = JOptionPane.showInputDialog("Indique o nome");
+				if (name != null) {
+					criaContacto(name);
+				}
 
 			}
 
@@ -192,40 +203,49 @@ public class ViewGUI{
 			public void actionPerformed(ActionEvent e) {
 				if (list.getSelectedIndex() != -1 && !list.isSelectionEmpty()) {
 					int index = list.getSelectedIndex();
+					user.removeContacto(list.getSelectedValue());
+					fundoChat.remove(chat);
+					fundoChat.add(empty, BorderLayout.CENTER);
 					list.clearSelection();
 					model.remove(index);
-
+					fundoChat.repaint();
+					texto.setEnabled(true);
+					send.setEnabled(true);
 				}
+				texto.setEnabled(false);
+				send.setEnabled(false);
 			}
 		});
 
 		// Adiciona elementos � zona dos contactos
 		JPanel zonaDeEditar = new JPanel();
 		zonaDeEditar.setLayout(new FlowLayout());
+		zonaDeEditar.setBackground(Color.white);
 		zonaDeEditar.add(addContacto);
 		zonaDeEditar.add(deleteContacto);
 		zonaDeContactos.add(zonaDeEditar, BorderLayout.SOUTH);
 		zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
+		zonaDeContactos.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
 		// Listener para o elemento selecionado da Lista
 		list.addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
+				// Muda a JLabel com o nome da conversa para o nome do
+				// Contacto
 				if (!list.isSelectionEmpty()) {
-					// Muda a JLabel com o nome da conversa para o nome do
-					// Contacto
 					nomeConversa.setText(list.getSelectedValue().getNome());
-					// Muda o chat para a JTextArea que pertence ao contacto
 					chat = list.getSelectedValue().getConversa().getConversa();
-					// Muda a scrollpane para o chat novo
 					scrollpaneChat.setViewportView(chat);
+					fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
+					scrollpaneChat.setBackground(scrollpaneChat.getParent().getBackground());
+					chat.repaint();
+
 					// Volta a permitir escrever e enviar texto
 					send.setEnabled(true);
 					texto.setEnabled(true);
-				} else {
-					nomeConversa.setText("Chat");
-					chat = null;
 				}
+
 			}
 		});
 		// Impede o envio e escrita de texto quando nenhum contacto est�
@@ -237,20 +257,18 @@ public class ViewGUI{
 
 		window.add(zonaDeContactos, BorderLayout.WEST);
 		window.add(fundoChat, BorderLayout.CENTER);
-		window.setSize(800, 600);
+		window.setSize(675, 650);
+		window.setResizable(false);
 		// window.pack();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
 
 	// Fun��o para criar contacto
-	private void criaContacto() {
+	private void criaContacto(String nome) {
 		File ficheiro;
 		Image image = null;
 		ImageIcon iconeContacto = null;
-
-		// Mostra um menu a perguntar o nome
-		String name = JOptionPane.showInputDialog("Indique o nome");
 
 		// Mostra um menu a perguntar se quer adicionar foto
 		int escolherPic = JOptionPane.showConfirmDialog(null,
@@ -271,15 +289,28 @@ public class ViewGUI{
 			// imagem
 			if (result == JFileChooser.APPROVE_OPTION) {
 				ficheiro = selectimg.getSelectedFile();
+
+				Path origem = Paths.get(ficheiro.getAbsolutePath());
+				Path destino = Paths.get("config/user/" + user.getNome() + "/"
+						+ nome + ".jpg");
+
 				try {
+					Files.copy(origem, destino);
 					image = ImageIO.read(ficheiro);
-				} catch (IOException e1) {
-					e1.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+				
 				// Transforma uma vers�o diminuida da imagem num ImageIcon
 				// para o contacto
 				iconeContacto = new ImageIcon(new ImageIcon(image).getImage()
 						.getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
+
+			} else { 
+				iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource(
+						"/def.png")).getImage().getScaledInstance(45, 45,
+						java.awt.Image.SCALE_SMOOTH));
 			}
 		} else {
 			// Transforma a imagem default num ImageIcon para o contacto
@@ -288,21 +319,27 @@ public class ViewGUI{
 					java.awt.Image.SCALE_SMOOTH));
 		}
 		// Cria o novo contacto
-		Contacto novo = new Contacto(name, new Conversa(new JTextArea()),
-				iconeContacto);
+		Contacto novo = new Contacto(nome, new Conversa(new JanelaDeConversa(
+				nome), user), iconeContacto);
 		model.addElement(novo);
 		user.novoContacto(novo);
+
 	}
+
 	// Escreve o texto no chat e adiciona � ArrayList de mensagens do Contacto
 	private void enviaMensagem() {
-		Mensagem message = new Mensagem(texto.getText(),
-				list.getSelectedValue());
-		list.getSelectedValue().getConversa().addMessage(message);
-		chat.setText(chat.getText() + "\n" + "Eu: " + message.getConteudo());
-		texto.setText(null);
+		if (!texto.getText().isEmpty()) {
+			Mensagem m = new Mensagem(texto.getText(), list.getSelectedValue(),true);
+			list.getSelectedValue().getConversa().novaMensagem(m);
+			chat.sendMessage(texto.getText());
+			texto.setText(null);
+			window.setVisible(true);
+		}
 	}
 
 	public void open() {
+		loadConfig();
+		window.setLocationRelativeTo(null);
 		window.setVisible(true);
 	}
 
@@ -311,4 +348,23 @@ public class ViewGUI{
 
 	}
 
+	private void loadConfig() {
+		try {
+			BufferedReader read = new BufferedReader(new FileReader(
+					"config/user/" + user.getNome() + "/contactos.txt"));
+			String line;
+
+			while ((line = read.readLine()) != null) {
+				System.out.println(line);
+				Contacto c = user.loadContacto(line);
+				c.getConversa().loadConversa(c);
+				model.addElement(c);
+			}
+			read.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
