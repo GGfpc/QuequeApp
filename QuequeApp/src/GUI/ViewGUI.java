@@ -126,9 +126,7 @@ public class ViewGUI {
 		empty.setHorizontalAlignment(SwingConstants.CENTER);
 		fundoChat.add(empty, BorderLayout.CENTER);
 		scrollpaneChat = new JScrollPane(chat);
-		scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
-		scrollpaneChat.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollpaneChat.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		
 		// adicionar elementos ao painel do chat
 		fundoChat.add(nomeConversa, BorderLayout.NORTH);
 		fundoChat.add(zonaDeEscrita, BorderLayout.SOUTH);
@@ -204,7 +202,7 @@ public class ViewGUI {
 				if (list.getSelectedIndex() != -1 && !list.isSelectionEmpty()) {
 					int index = list.getSelectedIndex();
 					user.removeContacto(list.getSelectedValue());
-					fundoChat.remove(chat);
+					fundoChat.remove(scrollpaneChat);
 					fundoChat.add(empty, BorderLayout.CENTER);
 					list.clearSelection();
 					model.remove(index);
@@ -237,6 +235,11 @@ public class ViewGUI {
 					nomeConversa.setText(list.getSelectedValue().getNome());
 					chat = list.getSelectedValue().getConversa().getConversa();
 					scrollpaneChat.setViewportView(chat);
+					
+					scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
+					scrollpaneChat.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+					scrollpaneChat.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+					
 					fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
 					scrollpaneChat.setBackground(scrollpaneChat.getParent().getBackground());
 					chat.repaint();
