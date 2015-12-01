@@ -64,7 +64,7 @@ public class JanelaDeConversa extends JPanel {
 		painel.add(msg);
 		msgHoldingPanel.add(painel);
 		msgHoldingPanel.add(Box.createRigidArea(new Dimension(0,20)));
-		
+		this.revalidate();
 	}
 	
 	public void sendMessage(String s) {
@@ -92,6 +92,11 @@ public class JanelaDeConversa extends JPanel {
 		}
 		painel.add(msg2);
 		msgHoldingPanel.add(painel);
+		//this.invalidate();
+		//this.validate();
+		this.revalidate();
+		//this.repaint();
+		
 	}
 
 	

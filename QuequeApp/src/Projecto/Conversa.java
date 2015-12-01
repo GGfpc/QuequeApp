@@ -54,7 +54,7 @@ public class Conversa {
 			while ((msg = read.readLine()) != null) {
 				String[] tokens = msg.split("-");
 				boolean sent = Boolean.parseBoolean(tokens[3]);
-				Mensagem mensagem = new Mensagem(tokens[2], remetente, sent);
+				Mensagem mensagem = new Mensagem(tokens[2], remetente, sent,u);
 				if (sent) {
 					this.conversa.sendMessage(mensagem.getConteudo());
 				} else {
