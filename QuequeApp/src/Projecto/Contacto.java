@@ -1,34 +1,36 @@
-	package Projecto;
+package Projecto;
+
+import java.io.Serializable;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTextArea;
 
-public class Contacto {
+public class Contacto implements Serializable {
 
 	private String nome;
 	private ImageIcon img;
-	private Conversa conversa;
+	private transient Conversa conversa;
 	private String path;
+	private int notifications;
 
-	public Contacto(String nome, Conversa conversa, ImageIcon img) {
-		super();
-		this.nome = nome;
-		this.img = img;
-		this.conversa = conversa;
-		this.path = path;
-	}
-
-	public Contacto(String nome) {
+	public Contacto(String nome, Conversa conversa) {
 		super();
 		this.nome = nome;
 		this.conversa = conversa;
-			this.img = img;
+		notifications = 0;
+
+		// Transforma a imagem default num ImageIcon para o contacto
+		img = new ImageIcon(new ImageIcon(getClass().getResource("/def.png"))
+				.getImage().getScaledInstance(45, 45,
+						java.awt.Image.SCALE_SMOOTH));
+
+		// Cria o novo contacto
 	}
-	
+
 	public String getNome() {
 		return nome;
 	}
-	
+
 	public void setNome(String nome) {
 		this.nome = nome;
 	}
@@ -37,15 +39,25 @@ public class Contacto {
 		return img;
 	}
 
+	public void setImg(ImageIcon img) {
+		this.img = img;
+	}
+
 	public Conversa getConversa() {
 		return conversa;
 	}
-	
+
 	@Override
 	public String toString() {
 		return nome;
 	}
-	
-	
+
+	public void setNotifications(int notifications) {
+		this.notifications = notifications;
+	}
+
+	public int getNotifications() {
+		return notifications;
+	}
 
 }
