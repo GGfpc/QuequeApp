@@ -10,14 +10,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -33,21 +36,27 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Projecto.Contacto;
 import Projecto.Conversa;
+import Projecto.Grupo;
 import Projecto.Mensagem;
+import Rede.Client;
 
 public class ViewGUI {
 
 	private JFrame window = new JFrame("HeyApp");
 	private Utilizador user;
+	private Client client;
+
+	private JPanel userpanel;
+	private JLabel userLabel;
 
 	// Zona de escrita
 	private JTextField texto;
@@ -66,10 +75,73 @@ public class ViewGUI {
 	private JScrollPane scrollpaneContacts;
 	private JButton addContacto;
 	private JButton deleteContacto;
+	private JButton addGrupo;
 
-	public ViewGUI(Utilizador user) {
+	public ViewGUI(Utilizador user, Client client) {
 
 		this.user = user;
+		this.client = client;
+		userLabel = new JLabel(user.getNome() + "aquiii");
+		userpanel = new JPanel();
+		userLabel.setIcon(user.getPic());
+	
+		
+		
+		window.addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				try {
+
+					for (int i = 0; i < model.getSize(); i++) {
+						model.getElementAt(i).getConversa()
+								.saveConversa(model.getElementAt(i));
+					}
+
+					client.closeSocket();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
 
 		// **************** Zona de Escrita **************************/
 
@@ -126,7 +198,9 @@ public class ViewGUI {
 		empty.setHorizontalAlignment(SwingConstants.CENTER);
 		fundoChat.add(empty, BorderLayout.CENTER);
 		scrollpaneChat = new JScrollPane(chat);
-		
+		scrollpaneChat.getVerticalScrollBar().setValue(
+				scrollpaneChat.getVerticalScrollBar().getMaximum());
+
 		// adicionar elementos ao painel do chat
 		fundoChat.add(nomeConversa, BorderLayout.NORTH);
 		fundoChat.add(zonaDeEscrita, BorderLayout.SOUTH);
@@ -148,6 +222,11 @@ public class ViewGUI {
 					boolean isSelected, boolean cellHasFocus) {
 				// Cada elemento da lista ï¿½ uma JLabel
 				String name = value.getNome();
+
+				if (value.getNotifications() > 0) {
+					name = value.getNome() + " (" + value.getNotifications()
+							+ ")";
+				}
 				setText(name);
 				setIcon(value.getImg());
 				Font font = new Font("Arial", Font.BOLD, 30);
@@ -158,10 +237,17 @@ public class ViewGUI {
 				if (isSelected) {
 					setBackground(list.getSelectionBackground());
 					setForeground(list.getSelectionForeground());
-				} else {
+					value.setNotifications(0);
+				}
+
+				else {
 					setBackground(list.getBackground());
 					setForeground(list.getForeground());
+					if (value.getNotifications() > 0) {
+						setBackground(Color.GREEN);
+					}
 				}
+
 				setEnabled(list.isEnabled());
 				setFont(list.getFont());
 				setOpaque(true);
@@ -215,11 +301,31 @@ public class ViewGUI {
 			}
 		});
 
+		addGrupo = new JButton("Grupo");
+		addGrupo.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				List<Contacto> grupo = list.getSelectedValuesList();
+
+				Grupo novo = new Grupo("Nome", new Conversa(
+						new JanelaDeConversa("Grupo"), user));
+				model.addElement(novo);
+				for (Contacto c : grupo) {
+					novo.addContacto(c);
+				}
+
+				System.out.println(novo.getContactos());
+				user.novoGrupo(novo);
+			}
+		});
+
 		// Adiciona elementos ï¿½ zona dos contactos
 		JPanel zonaDeEditar = new JPanel();
 		zonaDeEditar.setLayout(new FlowLayout());
 		zonaDeEditar.setBackground(Color.white);
 		zonaDeEditar.add(addContacto);
+		zonaDeEditar.add(addGrupo);
 		zonaDeEditar.add(deleteContacto);
 		zonaDeContactos.add(zonaDeEditar, BorderLayout.SOUTH);
 		zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
@@ -233,15 +339,19 @@ public class ViewGUI {
 				// Contacto
 				if (!list.isSelectionEmpty()) {
 					nomeConversa.setText(list.getSelectedValue().getNome());
-					chat = list.getSelectedValue().getConversa().getConversa();
+					chat = (list.getSelectedValue()).getConversa()
+							.getConversa();
 					scrollpaneChat.setViewportView(chat);
-					
+
 					scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
-					scrollpaneChat.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-					scrollpaneChat.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-					
+					scrollpaneChat
+							.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+					scrollpaneChat
+							.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
 					fundoChat.add(scrollpaneChat, BorderLayout.CENTER);
-					scrollpaneChat.setBackground(scrollpaneChat.getParent().getBackground());
+					scrollpaneChat.setBackground(scrollpaneChat.getParent()
+							.getBackground());
 					chat.repaint();
 
 					// Volta a permitir escrever e enviar texto
@@ -258,86 +368,61 @@ public class ViewGUI {
 
 		// ****************************************************************/
 
+		
+		
+		
+		userpanel.add(userLabel);
+		window.add(userpanel, BorderLayout.NORTH);
 		window.add(zonaDeContactos, BorderLayout.WEST);
 		window.add(fundoChat, BorderLayout.CENTER);
-		window.setSize(675, 650);
+		window.setSize(720, 650);
 		window.setResizable(false);
-		// window.pack();
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		client.setView(this);
 	}
 
 	// Funï¿½ï¿½o para criar contacto
 	private void criaContacto(String nome) {
-		File ficheiro;
-		Image image = null;
-		ImageIcon iconeContacto = null;
 
-		// Mostra um menu a perguntar se quer adicionar foto
-		int escolherPic = JOptionPane.showConfirmDialog(null,
-				"Deseja adicionar uma foto?");
-
-		// Se a resposta for sim
-		if (escolherPic == JOptionPane.YES_OPTION) {
-			// Cria filtro para mostrar apenas imagens no selector de ficheiros
-			FileNameExtensionFilter filtroImagens = new FileNameExtensionFilter(
-					"Image Files", "jpg", "jpeg", "png");
-
-			// Cria selector, adiciona o filtro e mostra os ficheiros
-			JFileChooser selectimg = new JFileChooser();
-			selectimg.setFileFilter(filtroImagens);
-			int result = selectimg.showOpenDialog(null);
-
-			// Se selecionar um ficheiro guarda-o e depois tenta lï¿½r como
-			// imagem
-			if (result == JFileChooser.APPROVE_OPTION) {
-				ficheiro = selectimg.getSelectedFile();
-
-				Path origem = Paths.get(ficheiro.getAbsolutePath());
-				Path destino = Paths.get("config/user/" + user.getNome() + "/"
-						+ nome + ".jpg");
-
-				try {
-					Files.copy(origem, destino);
-					image = ImageIO.read(ficheiro);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				// Transforma uma versï¿½o diminuida da imagem num ImageIcon
-				// para o contacto
-				iconeContacto = new ImageIcon(new ImageIcon(image).getImage()
-						.getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH));
-
-			} else { 
-				iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource(
-						"/def.png")).getImage().getScaledInstance(45, 45,
-						java.awt.Image.SCALE_SMOOTH));
-			}
-		} else {
-			// Transforma a imagem default num ImageIcon para o contacto
-			iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource(
-					"/def.png")).getImage().getScaledInstance(45, 45,
-					java.awt.Image.SCALE_SMOOTH));
-		}
-		// Cria o novo contacto
 		Contacto novo = new Contacto(nome, new Conversa(new JanelaDeConversa(
-				nome), user), iconeContacto);
+				nome), user));
 		model.addElement(novo);
 		user.novoContacto(novo);
 
 	}
 
+	public DefaultListModel<Contacto> getModel() {
+		return model;
+	}
+
+	public JList<Contacto> getList() {
+		return list;
+	}
+
 	// Escreve o texto no chat e adiciona ï¿½ ArrayList de mensagens do Contacto
 	private void enviaMensagem() {
 		if (!texto.getText().isEmpty()) {
-			Mensagem m = new Mensagem(texto.getText(), list.getSelectedValue(),true);
-			list.getSelectedValue().getConversa().novaMensagem(m);
-			chat.sendMessage(texto.getText());
+			Mensagem m;
+
+			if (list.getSelectedValue() instanceof Grupo) {
+				m = new Mensagem(texto.getText(), list.getSelectedValue(),
+						true, user,true);
+				m.setJanela(list.getSelectedValue());
+				System.out.println("grupo");
+			} else {
+
+				m = new Mensagem(texto.getText(), list.getSelectedValue(),
+						true, user,false);
+				m.setJanela(list.getSelectedValue());
+				System.out.println("contacto");
+			}
+			client.enviaParaServ(m);
+			(list.getSelectedValue()).getConversa().novaMensagem(m);
+			chat.sendMessage(m, false);
 			texto.setText(null);
-			window.setVisible(true);
+
 		}
+
 	}
 
 	public void open() {
@@ -353,6 +438,10 @@ public class ViewGUI {
 
 	private void loadConfig() {
 		try {
+
+			// Image img = new
+			// ImageIcon(ViewGUI.class.getResource("config/user/Gonçalo/userpic.jpg")).getImage();
+
 			BufferedReader read = new BufferedReader(new FileReader(
 					"config/user/" + user.getNome() + "/contactos.txt"));
 			String line;
@@ -364,10 +453,23 @@ public class ViewGUI {
 				model.addElement(c);
 			}
 			read.close();
+			
+			BufferedReader readGrupo = new BufferedReader(new FileReader(
+					"config/user/" + user.getNome() + "/grupos.txt"));
+			String lineGrupos;
+
+			while ((lineGrupos = readGrupo.readLine()) != null) {
+				System.out.println(lineGrupos);
+				Grupo g = user.loadGrupo(lineGrupos);
+				g.getConversa().loadConversa(g);
+				model.addElement(g);
+			}
+			readGrupo.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
 }
