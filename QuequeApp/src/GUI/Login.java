@@ -57,6 +57,7 @@ public class Login extends JFrame {
 					}
 					view.open();
 					logMenu.dispose();
+					client.ligaAServ();
 				}
 
 			}
@@ -122,8 +123,12 @@ public class Login extends JFrame {
 				ficheiro = selectimg.getSelectedFile();
 
 				Path origem = Paths.get(ficheiro.getAbsolutePath());
+				
 				Path destino = Paths.get("config/user/" + user.getNome() + "/"
 						+ "userpic.jpg");
+			
+				
+				
 
 				try {
 					Files.copy(origem, destino);
@@ -150,6 +155,7 @@ public class Login extends JFrame {
 					java.awt.Image.SCALE_SMOOTH));
 		}
 		user.setPic(iconeContacto);
+		
 	}
 
 }

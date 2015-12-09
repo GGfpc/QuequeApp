@@ -8,25 +8,32 @@ import javax.swing.JTextArea;
 public class Contacto implements Serializable {
 
 	private String nome;
-	private ImageIcon img;
-	private transient Conversa conversa;
-	private String path;
+	private ImageIcon img;	
 	private int notifications;
+
+	private transient Conversa conversa;
 
 	public Contacto(String nome, Conversa conversa) {
 		super();
 		this.nome = nome;
 		this.conversa = conversa;
-		notifications = 0;
-
-		// Transforma a imagem default num ImageIcon para o contacto
+		
+		//Imagem default do utilizador
+		
 		img = new ImageIcon(new ImageIcon(getClass().getResource("/def.png"))
-				.getImage().getScaledInstance(45, 45,
-						java.awt.Image.SCALE_SMOOTH));
-
-		// Cria o novo contacto
+		.getImage().getScaledInstance(45, 45,
+				java.awt.Image.SCALE_SMOOTH));
+		
+		
+		//Quando este valor é maior que 0 a lista de contactos fica verde e mostra o numero
+		notifications = 0;
 	}
 
+	public Conversa getConversa() {
+		return conversa;
+	}
+	
+	
 	public String getNome() {
 		return nome;
 	}
@@ -43,9 +50,6 @@ public class Contacto implements Serializable {
 		this.img = img;
 	}
 
-	public Conversa getConversa() {
-		return conversa;
-	}
 
 	@Override
 	public String toString() {
@@ -59,5 +63,7 @@ public class Contacto implements Serializable {
 	public int getNotifications() {
 		return notifications;
 	}
+
+
 
 }

@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -34,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
@@ -42,6 +45,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Projecto.Contacto;
 import Projecto.Conversa;
+import Projecto.Grupo;
 import Projecto.Mensagem;
 import Rede.Client;
 
@@ -53,7 +57,7 @@ public class ViewGUI {
 
 	private JPanel userpanel;
 	private JLabel userLabel;
-	
+
 	// Zona de escrita
 	private JTextField texto;
 	private JButton send;
@@ -71,61 +75,71 @@ public class ViewGUI {
 	private JScrollPane scrollpaneContacts;
 	private JButton addContacto;
 	private JButton deleteContacto;
+	private JButton addGrupo;
 
 	public ViewGUI(Utilizador user, Client client) {
 
 		this.user = user;
 		this.client = client;
-		userLabel = new JLabel(user.getNome());
+		userLabel = new JLabel(user.getNome() + "aquiii");
 		userpanel = new JPanel();
+		userLabel.setIcon(user.getPic());
+	
+		
 		
 		window.addWindowListener(new WindowListener() {
-			
+
 			@Override
 			public void windowOpened(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowIconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowDeiconified(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowDeactivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowClosing(WindowEvent e) {
 				try {
-					client.close();
+
+					for (int i = 0; i < model.getSize(); i++) {
+						model.getElementAt(i).getConversa()
+								.saveConversa(model.getElementAt(i));
+					}
+
+					client.closeSocket();
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				
+
 			}
-			
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void windowActivated(WindowEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 		});
 
@@ -208,10 +222,10 @@ public class ViewGUI {
 					boolean isSelected, boolean cellHasFocus) {
 				// Cada elemento da lista ï¿½ uma JLabel
 				String name = value.getNome();
-				
+
 				if (value.getNotifications() > 0) {
-					name = value.getNome() + " ("
-							+ value.getNotifications() + ")";
+					name = value.getNome() + " (" + value.getNotifications()
+							+ ")";
 				}
 				setText(name);
 				setIcon(value.getImg());
@@ -287,11 +301,31 @@ public class ViewGUI {
 			}
 		});
 
+		addGrupo = new JButton("Grupo");
+		addGrupo.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				List<Contacto> grupo = list.getSelectedValuesList();
+
+				Grupo novo = new Grupo("Nome", new Conversa(
+						new JanelaDeConversa("Grupo"), user));
+				model.addElement(novo);
+				for (Contacto c : grupo) {
+					novo.addContacto(c);
+				}
+
+				System.out.println(novo.getContactos());
+				user.novoGrupo(novo);
+			}
+		});
+
 		// Adiciona elementos ï¿½ zona dos contactos
 		JPanel zonaDeEditar = new JPanel();
 		zonaDeEditar.setLayout(new FlowLayout());
 		zonaDeEditar.setBackground(Color.white);
 		zonaDeEditar.add(addContacto);
+		zonaDeEditar.add(addGrupo);
 		zonaDeEditar.add(deleteContacto);
 		zonaDeContactos.add(zonaDeEditar, BorderLayout.SOUTH);
 		zonaDeContactos.add(scrollpaneContacts, BorderLayout.CENTER);
@@ -305,7 +339,8 @@ public class ViewGUI {
 				// Contacto
 				if (!list.isSelectionEmpty()) {
 					nomeConversa.setText(list.getSelectedValue().getNome());
-					chat = list.getSelectedValue().getConversa().getConversa();
+					chat = (list.getSelectedValue()).getConversa()
+							.getConversa();
 					scrollpaneChat.setViewportView(chat);
 
 					scrollpaneChat.setBorder(BorderFactory.createEmptyBorder());
@@ -332,12 +367,15 @@ public class ViewGUI {
 		texto.setEnabled(false);
 
 		// ****************************************************************/
-	  
+
+		
+		
+		
 		userpanel.add(userLabel);
 		window.add(userpanel, BorderLayout.NORTH);
 		window.add(zonaDeContactos, BorderLayout.WEST);
 		window.add(fundoChat, BorderLayout.CENTER);
-		window.setSize(675, 650);
+		window.setSize(720, 650);
 		window.setResizable(false);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		client.setView(this);
@@ -345,7 +383,7 @@ public class ViewGUI {
 
 	// Funï¿½ï¿½o para criar contacto
 	private void criaContacto(String nome) {
-	
+
 		Contacto novo = new Contacto(nome, new Conversa(new JanelaDeConversa(
 				nome), user));
 		model.addElement(novo);
@@ -364,13 +402,27 @@ public class ViewGUI {
 	// Escreve o texto no chat e adiciona ï¿½ ArrayList de mensagens do Contacto
 	private void enviaMensagem() {
 		if (!texto.getText().isEmpty()) {
-			Mensagem m = new Mensagem(texto.getText(), list.getSelectedValue(),
-					true, user);
+			Mensagem m;
+
+			if (list.getSelectedValue() instanceof Grupo) {
+				m = new Mensagem(texto.getText(), list.getSelectedValue(),
+						true, user,true);
+				m.setJanela(list.getSelectedValue());
+				System.out.println("grupo");
+			} else {
+
+				m = new Mensagem(texto.getText(), list.getSelectedValue(),
+						true, user,false);
+				m.setJanela(list.getSelectedValue());
+				System.out.println("contacto");
+			}
 			client.enviaParaServ(m);
-			list.getSelectedValue().getConversa().novaMensagem(m);
-			chat.sendMessage(texto.getText());
+			(list.getSelectedValue()).getConversa().novaMensagem(m);
+			chat.sendMessage(m, false);
 			texto.setText(null);
+
 		}
+
 	}
 
 	public void open() {
@@ -386,20 +438,33 @@ public class ViewGUI {
 
 	private void loadConfig() {
 		try {
-			
-		//Image img = new ImageIcon(ViewGUI.class.getResource("config/user/Gonçalo/userpic.jpg")).getImage();
-			
+
+			// Image img = new
+			// ImageIcon(ViewGUI.class.getResource("config/user/Gonçalo/userpic.jpg")).getImage();
+
 			BufferedReader read = new BufferedReader(new FileReader(
 					"config/user/" + user.getNome() + "/contactos.txt"));
 			String line;
 
-			while ((line = read.readLine()) != null){
+			while ((line = read.readLine()) != null) {
 				System.out.println(line);
 				Contacto c = user.loadContacto(line);
 				c.getConversa().loadConversa(c);
 				model.addElement(c);
 			}
 			read.close();
+			
+			BufferedReader readGrupo = new BufferedReader(new FileReader(
+					"config/user/" + user.getNome() + "/grupos.txt"));
+			String lineGrupos;
+
+			while ((lineGrupos = readGrupo.readLine()) != null) {
+				System.out.println(lineGrupos);
+				Grupo g = user.loadGrupo(lineGrupos);
+				g.getConversa().loadConversa(g);
+				model.addElement(g);
+			}
+			readGrupo.close();
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
