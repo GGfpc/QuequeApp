@@ -2,9 +2,12 @@ package GUI;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,14 +53,16 @@ public class Login extends JFrame {
 					nome = username.getText();
 					Utilizador utilizador = new Utilizador(nome);
 					Client client = new Client(utilizador);
-					ViewGUI view = new ViewGUI(utilizador, client);
+
 					File novo = new File("config/user/" + nome + "/" + "userpic.jpg");
 					if (!novo.exists()) {
 						selectPic(utilizador);
 					}
+					
+					ViewGUI view = new ViewGUI(utilizador, client);
 					view.open();
 					logMenu.dispose();
-					client.ligaAServ();
+					
 				}
 
 			}
@@ -150,11 +155,24 @@ public class Login extends JFrame {
 			}
 		} else {
 			// Transforma a imagem default num ImageIcon para o contacto
-			iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource(
-					"/def.png")).getImage().getScaledInstance(45, 45,
-					java.awt.Image.SCALE_SMOOTH));
+			iconeContacto = new ImageIcon(new ImageIcon(getClass().getResource("/def.png")).getImage().getScaledInstance(45, 45,
+				java.awt.Image.SCALE_SMOOTH));
+			
+			RenderedImage rend;
+			BufferedImage bimage = new BufferedImage(iconeContacto.getIconWidth(), iconeContacto.getIconHeight(), BufferedImage.TYPE_INT_RGB);
+			Graphics2D g = bimage.createGraphics();
+			g.drawImage(iconeContacto.getImage(), 0, 0, null);
+			g.dispose();
+			rend = bimage;
+			
+			File imagem = new File("config/user/" + user.getNome() + "/"+ "userpic.jpg");
+			try {
+				ImageIO.write(rend, "jpg", imagem);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		user.setPic(iconeContacto);
 		
 	}
 

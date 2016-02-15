@@ -3,6 +3,8 @@ package GUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
@@ -11,7 +13,9 @@ import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.CompoundBorder;
@@ -25,17 +29,15 @@ public class JanelaDeConversa extends JPanel {
 	private static final int PREF_W = 400;
 	private static final int PREF_H = 500;
 	private JPanel msgHoldingPanel = new JPanel();
-	//Guarda a JTextArea de cada mensagem associada ao id da mensagem
+	// Guarda a JTextArea de cada mensagem associada ao id da mensagem
 	private Map<String, JTextArea> msgs;
 
 	public JanelaDeConversa(String nome) {
 		msgs = new HashMap<String, JTextArea>();
-		msgHoldingPanel.setLayout(new BoxLayout(msgHoldingPanel,
-				BoxLayout.PAGE_AXIS));
+		msgHoldingPanel.setLayout(new BoxLayout(msgHoldingPanel, BoxLayout.PAGE_AXIS));
 		setLayout(new BorderLayout());
 		add(msgHoldingPanel, BorderLayout.PAGE_START);
 		this.nome = nome;
-
 	}
 
 	public void receiveMessage(String s, Contacto c) {
@@ -58,8 +60,7 @@ public class JanelaDeConversa extends JPanel {
 
 		} else {
 			int left = PREF_W - msg.getPreferredSize().width;
-			msg.setBorder(new CompoundBorder(new BorderVazia(0, 0, 0, left),
-					new RoundedBorder()));
+			msg.setBorder(new CompoundBorder(new BorderVazia(0, 0, 0, left), new RoundedBorder()));
 			msg.setMaximumSize(msg.getPreferredSize());
 		}
 		JLabel fotoDeContacto = new JLabel();
@@ -71,7 +72,109 @@ public class JanelaDeConversa extends JPanel {
 		msgHoldingPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 		this.revalidate();
 	}
-	//Faz bue cenas e envia a mensagem para o ecrã
+
+	public void sendImg(ImageIcon m) {
+		msgHoldingPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+		JPanel painel = new JPanel();
+		painel.setLayout(new BoxLayout(painel, BoxLayout.LINE_AXIS));
+		JLabel imglabel = new JLabel();
+		imglabel.setIcon(new ImageIcon(m.getImage().getScaledInstance(300, 300, java.awt.Image.SCALE_SMOOTH)));
+		int right = PREF_W - imglabel.getPreferredSize().width + 50;
+		imglabel.setBorder(new CompoundBorder(new BorderVazia(0, right, 0, 0), new RoundedBorder()));
+
+		imglabel.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JOptionPane.showMessageDialog(null,"","Picture",JOptionPane.INFORMATION_MESSAGE,m);
+				
+			}
+		});
+		
+		painel.add(imglabel);
+		msgHoldingPanel.add(painel);
+		this.revalidate();
+
+	}
+
+	public void receiveImg(ImageIcon m, Contacto c) {
+		msgHoldingPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+		JPanel painel = new JPanel();
+		painel.setLayout(new BoxLayout(painel, BoxLayout.LINE_AXIS));
+		JLabel imglabel = new JLabel();
+		imglabel.setIcon(new ImageIcon(m.getImage().getScaledInstance(300, 300, java.awt.Image.SCALE_SMOOTH)));
+		int left = PREF_W - imglabel.getPreferredSize().width;
+		imglabel.setBorder(new CompoundBorder(new BorderVazia(0, 0, 0, left), new RoundedBorder()));
+
+		imglabel.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JOptionPane.showMessageDialog(null,"","Picture",JOptionPane.INFORMATION_MESSAGE,m);
+				
+			}
+		});
+		
+		
+		JLabel fotoDeContacto = new JLabel();
+		fotoDeContacto.setIcon(c.getImg());
+		painel.add(fotoDeContacto);
+
+		painel.add(imglabel);
+		msgHoldingPanel.add(painel);
+		this.revalidate();
+
+	}
+
+	// Faz bue cenas e envia a mensagem para o ecrã
 	public void sendMessage(Mensagem m, boolean loading) {
 		msgHoldingPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 		JPanel painel = new JPanel();
@@ -98,8 +201,7 @@ public class JanelaDeConversa extends JPanel {
 
 		} else {
 			int right = PREF_W - msg2.getPreferredSize().width + 60;
-			msg2.setBorder(new CompoundBorder(new BorderVazia(0, right, 0, 0),
-					new RoundedBorder()));
+			msg2.setBorder(new CompoundBorder(new BorderVazia(0, right, 0, 0), new RoundedBorder()));
 			msg2.setMaximumSize(msg2.getPreferredSize());
 		}
 		msgs.put(m.getId(), msg2);
@@ -113,16 +215,24 @@ public class JanelaDeConversa extends JPanel {
 		// this.repaint();
 
 	}
-	
-	//Muda a cor da mensagem quando é notificado
+
+	// Muda a cor da mensagem quando é notificado
 	public void setSent(Mensagem m) {
+
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		System.out.println("notificado");
 		Color bg3 = Color.decode("#99E3B6");
-
-		msgs.get(m.getId()).setBackground(bg3);
-
-		msgs.get(m.getId()).setEnabled(true);
+		if (!m.isHaspic()) {
+			msgs.get(m.getId()).setBackground(bg3);
+			msgs.get(m.getId()).setEnabled(true);
+		}
+		
 		this.repaint();
 		this.revalidate();
 

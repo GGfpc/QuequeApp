@@ -29,7 +29,6 @@ public class Utilizador implements Serializable {
 		this.nome = nome;
 		criaConfig();
 
-		
 	}
 	
 	
@@ -68,6 +67,43 @@ public class Utilizador implements Serializable {
 		imagem.delete();
 
 	}
+	
+	
+	public void removeGrupo(Grupo g) {
+		contactosDoUtilizador.remove(g);
+
+		File grupos = new File("config/user/" + nome + "/grupos.txt");
+		File conversa = new File("config/user/" + nome + "/" + g.getNome()
+				+ "-conversa.txt");
+		File imagem = new File("config/user/" + nome + "/" + g.getNome()
+				+ ".jpg");
+
+		File tempFile = new File(grupos.getAbsolutePath() + ".tmp");
+
+		try {
+			BufferedReader read = new BufferedReader(new FileReader(grupos));
+			PrintWriter write = new PrintWriter(new FileWriter(tempFile));
+			String linha = null;
+			while ((linha = read.readLine()) != null) {
+				String[] tokens = linha.split(";");
+				if (!tokens[0].equals(g.getNome())) {
+					write.println(linha);
+					write.flush();
+				}
+			}
+			read.close();
+			write.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		grupos.delete();
+		tempFile.renameTo(grupos);
+		conversa.delete();
+		imagem.delete();
+
+	}
 
 	public void novoContacto(Contacto remetente) {
 		contactosDoUtilizador.add(remetente);
@@ -92,10 +128,17 @@ public class Utilizador implements Serializable {
 			File conversa = new File("config/user/" + nome + "/"
 					+ grupo.getNome() + "-conversa.txt");
 			conversa.createNewFile();
+			
+			String grupolog = grupo.getNome();
+			
+			for(Contacto c : grupo.getContactos()){
+				grupolog += (";" + c.getNome());
+			}
 
 			FileWriter writer = new FileWriter("config/user/" + nome
 					+ "/grupos.txt", true);
-			writer.write(grupo.getNome() + System.lineSeparator());
+			
+			writer.write(grupolog + System.lineSeparator());
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -109,7 +152,9 @@ public class Utilizador implements Serializable {
 
 	private void criaConfig() {
 		File userDir = new File("config/user/" + nome);
+		File picDir = new File("config/user/" + nome + "/pics");
 		userDir.mkdirs();
+		picDir.mkdirs();
 
 		File configFile = new File("config/user/" + nome + "/contactos.txt");
 		File configGroupFile = new File("config/user/" + nome + "/grupos.txt");
@@ -149,11 +194,14 @@ public class Utilizador implements Serializable {
 		return c;
 	}
 	
-	public Grupo loadGrupo(String s){
+	public Grupo loadGrupo(String s, ArrayList<Contacto> contacto){
 
 		Grupo g = new Grupo(s,
 				new Conversa(new JanelaDeConversa(s), this));
+		g.setContactos(contacto);
 		contactosDoUtilizador.add(g);
+		System.out.println(g.getContactos());
+		System.out.println(g.getNome());
 		return g;
 	}
 
@@ -188,6 +236,15 @@ public class Utilizador implements Serializable {
 
 	public ImageIcon getPic() {
 		return pic;
+	}
+	
+	public boolean containsContacto(String c){
+		for(Contacto cont : contactosDoUtilizador){
+			if(cont.getNome().equals(c)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
