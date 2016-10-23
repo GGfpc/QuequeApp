@@ -17,13 +17,13 @@ QuequeApp is a Java based chat server and client inspired by WhatsApp.
 
 ##Screenshots
 
-##Log in
+###Log in
 ![alt tag](http://i.imgur.com/txbrLKu.png)
 
-##Message Bubbles!
+###Message Bubbles!
 
 ![alt tag](http://i.imgur.com/fbMJYcG.png)
 
-##Whats so special about Message Bubbles?
+#Whats so special about Message Bubbles?
 
 They took a ton of work so yeah, I'm pretty excited about it.
