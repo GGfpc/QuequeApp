@@ -1,10 +1,10 @@
-#QuequeApp
+# QuequeApp
 
-##What is it?
+## What is it?
 
 QuequeApp is a Java based chat server and client inspired by WhatsApp.
 
-##Features
+## Features
 
   - Multiple Users
   - Individual Messages
@@ -15,15 +15,15 @@ QuequeApp is a Java based chat server and client inspired by WhatsApp.
   - Sent notifications
   
 
-##Screenshots
+## Screenshots
 
-###Log in
+### Log in
 ![alt tag](http://i.imgur.com/txbrLKu.png)
 
-###Message Bubbles!
+### Message Bubbles!
 
 ![alt tag](http://i.imgur.com/fbMJYcG.png)
 
-#Whats so special about Message Bubbles?
+# Whats so special about Message Bubbles?
 
 They took a ton of work so yeah, I'm pretty excited about it.
